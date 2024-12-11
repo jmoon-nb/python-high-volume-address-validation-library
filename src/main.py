@@ -89,7 +89,7 @@ class HighVolumeAVMain:
                 address_validation_result = gmaps.addressvalidation(key)
                 parsed_response=av_result_parser_load.parse_av_response(address_validation_result)
                 address_datastore[key] = {**address_datastore[key], **parsed_response}
-                print('address_datastore[key]', address_datastore[key])
+                # print('address_datastore[key]', address_datastore[key])
 
                 # Increment progress bar
                 progress += 1
