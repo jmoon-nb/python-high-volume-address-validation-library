@@ -149,3 +149,5 @@ only_addresses.csv
 .DS_Store
 *.code-workspace
 test_config.yaml
+
+config.ini
