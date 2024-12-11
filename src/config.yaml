@@ -17,7 +17,7 @@ address_file : './sample-data/only_addresses.csv'
 
 ## Provide the columns which needs to be concatenated to get the address
 # column_numbers : [3,4,5,6,7]
-column_numbers : [0,1,2,3,4]
+column_numbers : [0, 1, 2, 3, 4]
 
 supplied_primary_key : 0
 
@@ -28,7 +28,7 @@ shelve_db : 'addresses'
 separator : ' '
 
 ## API KEY
-api_key : 'YOUR_API_KEY'
+api_key : 'AIzaSyDxVH510K2Avlf1ZgY6UyRUjsvMcGmPKJQ'
 
 ## Name of the output csv file
 output_csv : './output.csv'
@@ -48,4 +48,8 @@ run_mode : 2
 output_format: csv
 
 # Configure the columns to output
-output_columns: ['inputAddress', 'validationGranularity', 'formattedAddress', 'geocodeGranularity', 'placeId', 'latitude', 'longitude']
+output_columns: ['inputAddress', 'location_id', 'street_number', 'route', 'locality', 'administrative_area_level_1', 'postal_code', 'postal_code_suffix', 'error_msg', 'validationGranularity', 'formattedAddress', 'geocodeGranularity', 'placeId', 'latitude', 'longitude']
+
+location_id_column: 5
+
+error_msg_column: 6

@@ -39,6 +39,7 @@ class read_write_addressess_class:
         self.address_datastore = shelve.open(config.shelve_db, 'n')
         self.separator = config.separator
         self.address_datastore.clear()
+        self.location_id_column = config.location_id_column
 
 #
 # Get a row object
@@ -91,8 +92,9 @@ class read_write_addressess_class:
                 else:
                     final_address=self.build_address_string(row)
 
+                location_id = row[self.location_id_column]
                # print("Key getting inserted in db is ",final_address )
-                self.insert_addresses_in_ds(final_address)
+                self.insert_addresses_in_ds(final_address, location_id)
        
             # get total number of rows
             #print(rows)
@@ -104,7 +106,7 @@ class read_write_addressess_class:
     # storage mechanism
     #       
 
-    def insert_addresses_in_ds(self,final_address):
+    def insert_addresses_in_ds(self,final_address,location_id):
 
         print("Inside insert_addresses_in_ds::::  ",final_address)
        
@@ -128,7 +130,10 @@ class read_write_addressess_class:
         else:
             print("In else block inserting ",final_address,"to DS and to dict")
             global_duplicate_counter[final_address] = 1
-            self.address_datastore[final_address]={"Nothing"}
+            self.address_datastore[final_address]={
+                "location_id": location_id,
+                "counter": 0
+            }
 
     # 
     # Close the connection to the shelve datastore

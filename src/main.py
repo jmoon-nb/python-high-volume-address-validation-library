@@ -23,7 +23,7 @@ Final output is generated from the shelve object
 Returns:
     _type_: _description_
 """
-
+import pprint
 import glob
 import googlemaps
 import os
@@ -41,7 +41,10 @@ import json
 config = config_loader.Config()
 
 # Create a client of the googleMaps client library
-gmaps = googlemaps.Client(key=config.api_key)
+gmaps = googlemaps.Client(
+    key=config.api_key,
+    queries_per_minute=5000 # Sets the limit to approximately 5000 QPM
+)
 
 av_result_parser_load = av_result_parser_class()
 
@@ -77,7 +80,8 @@ class HighVolumeAVMain:
             for key in address_datastore:
                 address_validation_result = gmaps.addressvalidation(key)
                 parsed_response=av_result_parser_load.parse_av_response(address_validation_result)
-                address_datastore[key] = parsed_response
+                address_datastore[key] = {**address_datastore[key], **parsed_response}
+                print('address_datastore[key]', address_datastore[key])
 
                 # Increment progress bar
                 progress += 1

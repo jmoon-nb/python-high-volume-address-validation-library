@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import pprint
 import csv
 import config_loader
 
@@ -65,7 +65,29 @@ class av_result_parser_class:
         Returns:
             _type_: _description_
         """
-            
+        if 'result' not in address_validation_result and 'error' in address_validation_result: 
+        
+            error_msg = str(address_validation_result['error']['code']) + '|' + address_validation_result['error']['message']
+            return {
+                'placeId': 'ERROR',
+                'latitude': None,
+                'longitude': None, 
+                'inputGranularity': 'ERROR', 
+                'validationGranularity': 'ERROR', 
+                'geocodeGranularity': 'ERROR', 
+                'addressComplete': False, 
+                'hasInferredComponents': False, 
+                'street_number': 'ERROR', 
+                'route': 'ERROR', 
+                'locality': 'ERROR', 
+                'administrative_area_level_1': 'ERROR',
+                'postal_code': 'ERROR', 
+                'postal_code_suffix': 'ERROR', 
+                'country': 'ERROR',
+                'error_msg': error_msg
+            }
+
+
         if run_mode == 1:
             """_summary_:
             Most permissive mode. DO NOT USE this mode other than for testing
