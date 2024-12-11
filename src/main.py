@@ -30,6 +30,7 @@ import os
 import sys
 import time
 import config_loader
+import configparser
 import shelve
 from pathlib import Path
 import read_write_addresses
@@ -40,9 +41,16 @@ import json
 
 config = config_loader.Config()
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+
+api_config_file = os.path.join(parent_dir, "config.ini")
+api_config = configparser.ConfigParser()
+api_config.read(api_config_file)
+
 # Create a client of the googleMaps client library
 gmaps = googlemaps.Client(
-    key=config.api_key,
+    key=api_config['GMAPS']['APIKEY'],
     queries_per_minute=5000 # Sets the limit to approximately 5000 QPM
 )
 
