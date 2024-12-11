@@ -118,21 +118,21 @@ def main():
     result = subprocess.run(["python", script_path.name], cwd=script_path.parent, capture_output=True, text=True)
 
     # Access output and status of subprocess
-    # print("Output:", result.stdout)
-    # print("Errors:", result.stderr)
-    # print("Exit Code:", result.returncode)
+    print("Output:", result.stdout)
+    print("Errors:", result.stderr)
+    print("Exit Code:", result.returncode)
 
     if result.returncode == 0:
         print("Google Bulk Address Validation Script executed successfully!")
+
+        results_df = pd.read_csv('./src/output.csv')
+    
+        print("Output CSV Generated")
+
+        append_results(results_df, unfiltered_locations_df)
     else:
         print("Google Bulk Address Validation Script encountered an error.")
 
-
-    results_df = pd.read_csv('./src/output.csv')
-    
-    print("Output CSV Generated")
-
-    append_results(results_df, unfiltered_locations_df)
 
     return None
 
