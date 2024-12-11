@@ -111,7 +111,7 @@ def main():
 
     locations_df.to_csv('./src/sample-data/only_addresses.csv', index=False)
 
-    print("CSV Generated")
+    print("Input CSV Generated")
 
     script_path = Path("./src/main.py")
 
@@ -130,6 +130,8 @@ def main():
 
     results_df = pd.read_csv('./src/output.csv')
     
+    print("Output CSV Generated")
+
     append_results(results_df, unfiltered_locations_df)
 
     return None
