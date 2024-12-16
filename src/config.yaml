@@ -48,8 +48,8 @@ run_mode : 2
 output_format: csv
 
 # Configure the columns to output
-output_columns: ['inputAddress', 'location_id', 'street_number', 'route', 'locality', 'administrative_area_level_1', 'postal_code', 'postal_code_suffix', 'error_msg', 'validationGranularity', 'formattedAddress', 'geocodeGranularity', 'placeId', 'latitude', 'longitude']
-
+output_columns: ['inputAddress', 'location_id', 'firm', 'firstAddressLine', 'secondAddressLine', 'city', 'state', 'zipCode', 'zipCodeExtension', 'error_msg', 'street_number', 'route', 'locality', 'administrative_area_level_1', 'postal_code', 'postal_code_suffix']
+# 'validationGranularity', 'formattedAddress', 'geocodeGranularity', 'placeId', 'latitude', 'longitude'
 location_id_column: 5
 
 error_msg_column: 6

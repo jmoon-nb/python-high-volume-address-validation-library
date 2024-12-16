@@ -115,6 +115,7 @@ class av_result_parser_class:
             parsed_result.update(av_result_parser_class.get_latlong(address_validation_result))
             parsed_result.update(av_result_parser_class.get_verdict(address_validation_result))  
             parsed_result.update(av_result_parser_class.get_address_components(address_validation_result))
+            parsed_result.update(av_result_parser_class.get_usps_data(address_validation_result))            
 
         if run_mode == 3:
            parsed_result[PLACE_ID]=av_result_parser_class.get_place_ID(address_validation_result)
