@@ -1,5 +1,6 @@
 import os
 import sys
+import pyodbc
 import argparse
 import subprocess
 import configparser
@@ -28,7 +29,7 @@ def get_db_connection_string(database_name):
 def get_source_locations(connection_engine):
 
     query = """
-        SELECT TOP 10
+        SELECT TOP 3
             *
         FROM Staging.Location l
     """
@@ -40,6 +41,15 @@ def get_source_locations(connection_engine):
     return locations_df, unfiltered_locations_df
 
 def append_results(results_df, unfiltered_locations_df):
+
+    results_df['zipCode'] = results_df['zipCode'].astype(str).str.rstrip('.0')
+    results_df['zipCodeExtension'] = results_df['zipCodeExtension'].astype(str).str.rstrip('.0')
+    results_df['secondAddressLine'] = results_df['secondAddressLine'].astype(str)
+    results_df['error_msg'] = results_df['error_msg'].astype(str)
+
+    results_df['fullZipCode'] = results_df['zipCode'] + '-' + results_df['zipCodeExtension']
+    results_df['fullZipCode'] = results_df['fullZipCode'].astype(str).str.rstrip('.0')
+
     result_col_mapping = {
         'location_id': 'LocationID',
         'street_number': 'StreetNumberValidation',
@@ -48,29 +58,30 @@ def append_results(results_df, unfiltered_locations_df):
         'administrative_area_level_1': 'StateCodeValidation',
         'postal_code': 'PostalCodeValidation',
         'postal_code_suffix': 'PostalCodeSuffixValidation',
-        'error_msg': 'ValidationError'
+        'error_msg': 'ValidationError',
+        'firstAddressLine': 'USPSAddress1',
+        'secondAddressLine': 'USPSAddress2',
+        'city': 'USPSCity',
+        'state': 'USPSState',
+        'fullZipCode': 'USPSZip'
     }
 
     # Select subset of columns from results_df
-    columns_to_merge = ['location_id', 'street_number', 'route', 'locality', 'administrative_area_level_1', 'postal_code', 'postal_code_suffix', 'error_msg']
+    columns_to_merge = ['location_id', 'street_number', 'route', 'locality', 'administrative_area_level_1', 'postal_code', 'postal_code_suffix', 'error_msg', 'firstAddressLine', 'secondAddressLine', 'city', 'state', 'fullZipCode']
     results_df_subset = results_df[columns_to_merge].rename(columns=result_col_mapping)
 
     # Update 'LocationID' data type in results dataframe 
     results_df_subset['LocationID'] = pd.to_numeric(results_df_subset['LocationID'], errors='coerce').astype('Int64') 
 
     final_df = pd.merge(unfiltered_locations_df, results_df_subset, on='LocationID', how='inner') 
-
     final_df = final_df[
         [
-            'LocationID',
-            'ImportedLocationID',
-            'JRSLocationID',
             'LocationName',
-            'Address1',
-            'Address2',
-            'City',
-            'State',
-            'Zip',
+            'USPSAddress1',
+            'USPSAddress2',
+            'USPSCity',
+            'USPSState',
+            'USPSZip',
             'County',
             'FIPS',
             'Country',
@@ -84,24 +95,51 @@ def append_results(results_df, unfiltered_locations_df):
         ]
     ]
 
+    final_df = final_df.rename(columns={
+        'USPSAddress1': 'Address1',
+        'USPSAddress2': 'Address2',
+        'USPSCity': 'City',
+        'USPSState': 'State',
+        'USPSZip': 'Zip'
+    })
+
+    final_df = final_df.replace({'nan': ''})
+
     final_df.to_csv('final-validation-results.csv', index=False)
     
     return final_df
 
-def insert_into_ids(connection_engine):
-    sql_file = os.path.join(local_dir, 'InsertResults.sql')
-    with open(sql_file, 'r') as file:
-        query = file.read()
+def insert_into_ids(final_df):
+    db_config = configparser.ConfigParser()
+    db_config.read(db_config_file)
+    database_name = "ImportDataStaging"
 
-    connection = connection_engine.connect()
+    connection = pyodbc.connect(
+        "Driver={ODBC Driver 18 for SQL Server};"
+        f"Database={database_name};"
+        f"Server={db_config['DATABASE']['SERVER']};"
+        f"UID={db_config['DATABASE']['USERNAME']};"
+        f"PWD={db_config['DATABASE']['PASSWORD']};"
+        "TrustServerCertificate=YES;"
+    )
+    cursor = connection.cursor()
+    
+    table_name = 'Staging.LocationStandardized'
+    
+    placeholders = ", ".join(["?"] * len(final_df.columns))
+    insert_query = f"INSERT INTO {table_name} ({', '.join(final_df.columns)}) VALUES ({placeholders})"
+    
+    for row in final_df.itertuples(index=False):  # index=False to exclude the index column
+            try:
+                cursor.execute(insert_query, row)
+                connection.commit()
+            except Exception as e:
+                connection.rollback()
+                print(f"Query execution failed: {e}")
 
-    try:
-        connection.execute(query)
-        connection.commit()
-    except Exception as e:
-        connection.rollback()
-        print(f"Query execution failed: {e}")
-
+    connection.commit()
+    cursor.close()
+    connection.close()
 
     return None 
 
@@ -129,7 +167,9 @@ def main():
     
         print("Output CSV Generated")
 
-        append_results(results_df, unfiltered_locations_df)
+        final_df = append_results(results_df, unfiltered_locations_df)
+
+        insert_into_ids(final_df)
     else:
         print("Google Bulk Address Validation Script encountered an error.")
 
