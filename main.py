@@ -29,7 +29,7 @@ def get_db_connection_string(database_name):
 def get_source_locations(connection_engine):
 
     query = """
-        SELECT TOP 3
+        SELECT
             *
         FROM Staging.Location l
     """
@@ -41,14 +41,24 @@ def get_source_locations(connection_engine):
     return locations_df, unfiltered_locations_df
 
 def append_results(results_df, unfiltered_locations_df):
+    # results_df.loc[results_df['zipCode'].isna(), 'zipCode'] = None
+    results_df.loc[results_df['zipCode'].notna(), 'zipCode'] = results_df['zipCode'].astype(str).str.rstrip('.0').str.zfill(5)
 
-    results_df['zipCode'] = results_df['zipCode'].astype(str).str.rstrip('.0')
-    results_df['zipCodeExtension'] = results_df['zipCodeExtension'].astype(str).str.rstrip('.0')
+    # results_df['zipCode'] = results_df['zipCode'].astype(str).str.rstrip('.0').str.zfill(5)
+    # results_df.loc[results_df['zipCodeExtension'].isna(), 'zipCodeExtension'] = None
+    results_df.loc[results_df['zipCodeExtension'].notna(), 'zipCodeExtension'] = results_df['zipCodeExtension'].astype(str).str.rstrip('.0').str.zfill(4)
+    # results_df['zipCodeExtension'] = results_df['zipCodeExtension'].astype(str).str.rstrip('.0').str.zfill(4)
     results_df['secondAddressLine'] = results_df['secondAddressLine'].astype(str)
     results_df['error_msg'] = results_df['error_msg'].astype(str)
 
-    results_df['fullZipCode'] = results_df['zipCode'] + '-' + results_df['zipCodeExtension']
-    results_df['fullZipCode'] = results_df['fullZipCode'].astype(str).str.rstrip('.0')
+    print(results_df['zipCode'])
+    print(results_df['zipCodeExtension'])
+    results_df.loc[results_df['zipCodeExtension'].isna(), 'fullZipCode'] = results_df['zipCode']
+    results_df.loc[results_df['zipCodeExtension'].notna(), 'fullZipCode'] = results_df['zipCode'] + '-' + results_df['zipCodeExtension']
+    results_df['fullZipCode'].astype(str)
+    print(results_df['fullZipCode'])
+    # results_df['fullZipCode'] = results_df['zipCode'] + '-' + results_df['zipCodeExtension']
+    # results_df['fullZipCode'] = results_df['fullZipCode'].astype(str).str.rstrip('.0')
 
     result_col_mapping = {
         'location_id': 'LocationID',
@@ -103,10 +113,10 @@ def append_results(results_df, unfiltered_locations_df):
         'USPSZip': 'Zip'
     })
 
-    final_df = final_df.replace({'nan': ''})
+    final_df = final_df.replace({'nan': None})
 
     final_df.to_csv('final-validation-results.csv', index=False)
-    
+
     return final_df
 
 def insert_into_ids(final_df):
@@ -178,7 +188,7 @@ def main():
 
 if __name__ == "__main__":
     local_dir = os.path.dirname(os.path.abspath(__file__))
-    db_config_file = os.path.join(os.getcwd(), 'config.ini')
+    db_config_file = os.path.join(local_dir, 'config.ini')
     config_exists = os.path.exists(db_config_file)
 
     parser = argparse.ArgumentParser(description='Generates a CSV file with a list of locations for a specified jurisdiction')
