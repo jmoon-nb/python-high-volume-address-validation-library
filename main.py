@@ -41,24 +41,15 @@ def get_source_locations(connection_engine):
     return locations_df, unfiltered_locations_df
 
 def append_results(results_df, unfiltered_locations_df):
-    # results_df.loc[results_df['zipCode'].isna(), 'zipCode'] = None
     results_df.loc[results_df['zipCode'].notna(), 'zipCode'] = results_df['zipCode'].astype(str).str.rstrip('.0').str.zfill(5)
-
-    # results_df['zipCode'] = results_df['zipCode'].astype(str).str.rstrip('.0').str.zfill(5)
-    # results_df.loc[results_df['zipCodeExtension'].isna(), 'zipCodeExtension'] = None
     results_df.loc[results_df['zipCodeExtension'].notna(), 'zipCodeExtension'] = results_df['zipCodeExtension'].astype(str).str.rstrip('.0').str.zfill(4)
-    # results_df['zipCodeExtension'] = results_df['zipCodeExtension'].astype(str).str.rstrip('.0').str.zfill(4)
+
     results_df['secondAddressLine'] = results_df['secondAddressLine'].astype(str)
     results_df['error_msg'] = results_df['error_msg'].astype(str)
 
-    print(results_df['zipCode'])
-    print(results_df['zipCodeExtension'])
     results_df.loc[results_df['zipCodeExtension'].isna(), 'fullZipCode'] = results_df['zipCode']
     results_df.loc[results_df['zipCodeExtension'].notna(), 'fullZipCode'] = results_df['zipCode'] + '-' + results_df['zipCodeExtension']
     results_df['fullZipCode'].astype(str)
-    print(results_df['fullZipCode'])
-    # results_df['fullZipCode'] = results_df['zipCode'] + '-' + results_df['zipCodeExtension']
-    # results_df['fullZipCode'] = results_df['fullZipCode'].astype(str).str.rstrip('.0')
 
     result_col_mapping = {
         'location_id': 'LocationID',
